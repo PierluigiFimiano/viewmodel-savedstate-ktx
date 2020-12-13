@@ -19,7 +19,7 @@ internal object UNINITIALIZED_VALUE
  * @param initializer provides a default value when the [SavedStateHandle] doesn't contain
  * the given [key]
  */
-internal class SavedStateHandleReadWriteProperty<T>(
+internal class SavedStateHandleReadWriteProperty<T : Any?>(
     private val savedStateHandle: SavedStateHandle,
     private val key: String? = null,
     initializer: () -> T
@@ -62,14 +62,14 @@ internal class SavedStateHandleReadWriteProperty<T>(
  * @param key used to get and set the value into the [SavedStateHandle]. If it is null,
  * the [KProperty.name] is used as key
  */
-fun <T> SavedStateHandle.savedState(key: String? = null): ReadWriteProperty<Any?, T?> {
+fun <T : Any?> SavedStateHandle.savedState(key: String? = null): ReadWriteProperty<Any?, T?> {
     return SavedStateHandleReadWriteProperty(this, key) { null }
 }
 
 /**
  * Create a delegate property for the given key which is used
  * to access the [SavedStateHandle]. If the [SavedStateHandle] doesn't contain the specified key
- * the [defaultValue] is returned if it is not null else an [IllegalStateException] is thrown.
+ * and the [defaultValue] is not null, it is used else an [IllegalStateException] is thrown.
  * If the given [key] is null, the property.name is used as key (@see [KProperty.name]).
  *
  * @param key used to get and set the value into the [SavedStateHandle]. If it is null,
