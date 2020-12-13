@@ -1,0 +1,3 @@
+include ':viewmodelsavedstatektx'
+include ':app'
+rootProject.name = "ViewModelSavedStateKtxExample"
