@@ -39,7 +39,7 @@ android {
 
                     groupId = 'com.pierluigifimiano.viewmodel-savedstate-ktx'
                     artifactId = 'viewmodel-savedstate-ktx'
-                    version = '1.1'
+                    version = '2.0'
                 }
             }
         }

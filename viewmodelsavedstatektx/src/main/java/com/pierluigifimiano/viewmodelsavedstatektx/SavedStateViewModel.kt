@@ -35,25 +35,25 @@ abstract class SavedStateViewModel(protected val savedStateHandle: SavedStateHan
         savedStateHandle.getLiveData(key, initialValue)
 
     /**
-     * Wrapper function for the [SavedStateHandle.savedState] function.
+     * Wrapper function for the [SavedStateHandle.property] function.
      *
-     * @see SavedStateHandle.savedState
+     * @see SavedStateHandle.property
      * @param key
      */
-    protected fun <T> savedState(key: String? = null): ReadWriteProperty<Any?, T?> =
-        savedStateHandle.savedState(key)
+    protected fun <T> property(key: String? = null): ReadWriteProperty<Any?, T?> =
+        savedStateHandle.property(key)
 
     /**
-     * Wrapper function for the [SavedStateHandle.savedStateNotNull] function.
+     * Wrapper function for the [SavedStateHandle.requireProperty] function.
      *
-     * @see SavedStateHandle.savedStateNotNull
+     * @see SavedStateHandle.requireProperty
      * @param key
      * @param defaultValue
      */
-    protected fun <T : Any> savedStateNotNull(
+    protected fun <T : Any> requireProperty(
         key: String? = null,
         defaultValue: T? = null
-    ): ReadWriteProperty<Any?, T> = savedStateHandle.savedStateNotNull(key, defaultValue)
+    ): ReadWriteProperty<Any?, T> = savedStateHandle.requireProperty(key, defaultValue)
 
     /**
      * Wrapper function for the [SavedStateHandle.set] function.

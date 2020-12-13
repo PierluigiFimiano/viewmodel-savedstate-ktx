@@ -12,11 +12,11 @@ class MainViewModel(savedStateHandle: SavedStateHandle) : SavedStateViewModel(sa
     private val _myValue: MutableLiveData<Int> = getLiveData("myValue")
     val myValue: LiveData<Int> = _myValue
 
-    private var isFirstTime: Boolean by savedStateNotNull(defaultValue = true)
+    private var isFirstTime: Boolean by requireProperty(defaultValue = true)
 
-    private var firstValue: Int by savedStateNotNull(FIRST_VALUE_KEY)
+    private var firstValue: Int by requireProperty(FIRST_VALUE_KEY)
 
-    private var nullable: Int? by savedState()
+    private var nullable: Int? by property()
 
     init {
         if (isFirstTime) {

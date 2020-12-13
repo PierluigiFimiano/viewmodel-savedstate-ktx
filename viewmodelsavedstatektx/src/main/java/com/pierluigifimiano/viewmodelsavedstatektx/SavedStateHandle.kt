@@ -1,58 +1,8 @@
-@file:Suppress("ClassName")
-
 package com.pierluigifimiano.viewmodelsavedstatektx
 
 import androidx.lifecycle.SavedStateHandle
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
-
-internal object UNINITIALIZED_VALUE
-
-/**
- * Implement the property access delegation for a [SavedStateHandle]. The given [key] is used to
- * access the [savedStateHandle]. If the [key] is not present into the [savedStateHandle] the
- * [_initializer] is called in order to generate a default value to be returned. If the given [key]
- * is null, the property name is used as key.
- *
- * @param savedStateHandle reference to the [SavedStateHandle] object
- * @param key used to access the [SavedStateHandle]
- * @param initializer provides a default value when the [SavedStateHandle] doesn't contain
- * the given [key]
- */
-internal class SavedStateHandleReadWriteProperty<T : Any?>(
-    private val savedStateHandle: SavedStateHandle,
-    private val key: String? = null,
-    initializer: () -> T
-) : ReadWriteProperty<Any?, T> {
-
-    private var _initializer: (() -> T)? = initializer
-    private var defaultValue: Any? = UNINITIALIZED_VALUE
-
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-        // If the given key is null, the property.name is used as key
-        savedStateHandle.set(key ?: property.name, value)
-    }
-
-    override fun getValue(thisRef: Any?, property: KProperty<*>): T {
-        // If the given key is null, the property.name is used as key
-        var value: Any? = savedStateHandle.get(key ?: property.name)
-        if (value == null) {
-            // The given key is not present, the default value must be returned.
-            if (defaultValue === UNINITIALIZED_VALUE) {
-                /*
-                * The default value is not initialized. First it is initialized
-                * using the initializer function and after the reference to the initializer function
-                * is cleared.
-                */
-                defaultValue = _initializer!!()
-                _initializer = null
-            }
-            value = defaultValue
-        }
-        @Suppress("UNCHECKED_CAST")
-        return value as T
-    }
-}
 
 /**
  * Create a delegate property for the given key which is used
@@ -62,14 +12,24 @@ internal class SavedStateHandleReadWriteProperty<T : Any?>(
  * @param key used to get and set the value into the [SavedStateHandle]. If it is null,
  * the [KProperty.name] is used as key
  */
-fun <T : Any?> SavedStateHandle.savedState(key: String? = null): ReadWriteProperty<Any?, T?> {
-    return SavedStateHandleReadWriteProperty(this, key) { null }
+fun <T : Any?> SavedStateHandle.property(key: String? = null): ReadWriteProperty<Any?, T?> {
+    return object : ReadWriteProperty<Any?, T?> {
+        override fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
+            // If the given key is null, the property.name is used as key
+            set(key ?: property.name, value)
+        }
+
+        override fun getValue(thisRef: Any?, property: KProperty<*>): T? {
+            // If the given key is null, the property.name is used as key
+            return get(key ?: property.name)
+        }
+    }
 }
 
 /**
  * Create a delegate property for the given key which is used
  * to access the [SavedStateHandle]. If the [SavedStateHandle] doesn't contain the specified key
- * and the [defaultValue] is not null, it is used else an [IllegalStateException] is thrown.
+ * and the [defaultValue] is not null, it is used, else an [IllegalStateException] is thrown.
  * If the given [key] is null, the property.name is used as key (@see [KProperty.name]).
  *
  * @param key used to get and set the value into the [SavedStateHandle]. If it is null,
@@ -80,11 +40,29 @@ fun <T : Any?> SavedStateHandle.savedState(key: String? = null): ReadWriteProper
  * and [defaultValue] is null
  */
 @Throws(IllegalStateException::class)
-fun <T : Any> SavedStateHandle.savedStateNotNull(
+fun <T : Any> SavedStateHandle.requireProperty(
     key: String? = null,
     defaultValue: T? = null
 ): ReadWriteProperty<Any?, T> {
-    return SavedStateHandleReadWriteProperty(this, key) {
-        defaultValue ?: throw IllegalStateException("SavedStateHandle doesn't contain the key $key")
+    return object : ReadWriteProperty<Any?, T> {
+        override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+            // If the given key is null, the property.name is used as key
+            set(key ?: property.name, value)
+        }
+
+        override fun getValue(thisRef: Any?, property: KProperty<*>): T {
+            // If the given key is null, the property.name is used as key
+            val k: String = key ?: property.name
+            var value: T? = get(k)
+            if (value == null) {
+                // The given key is not present, the default value must be returned.
+                if (defaultValue == null) {
+                    // The default value was not specified, an exception is thrown.
+                    throw IllegalStateException("SavedStateHandle doesn't contain the key $k")
+                }
+                value = defaultValue
+            }
+            return value
+        }
     }
 }
