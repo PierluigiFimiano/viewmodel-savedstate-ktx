@@ -40,7 +40,7 @@ abstract class SavedStateViewModel(protected val savedStateHandle: SavedStateHan
      * @see SavedStateHandle.savedState
      * @param key
      */
-    protected fun <T> savedState(key: String): ReadWriteProperty<Any?, T?> =
+    protected fun <T> savedState(key: String? = null): ReadWriteProperty<Any?, T?> =
         savedStateHandle.savedState(key)
 
     /**
@@ -51,7 +51,7 @@ abstract class SavedStateViewModel(protected val savedStateHandle: SavedStateHan
      * @param defaultValue
      */
     protected fun <T : Any> savedStateNotNull(
-        key: String,
+        key: String? = null,
         defaultValue: T? = null
     ): ReadWriteProperty<Any?, T> = savedStateHandle.savedStateNotNull(key, defaultValue)
 
