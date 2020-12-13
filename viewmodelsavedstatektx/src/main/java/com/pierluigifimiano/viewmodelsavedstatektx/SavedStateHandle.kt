@@ -3,11 +3,22 @@
 package com.pierluigifimiano.viewmodelsavedstatektx
 
 import androidx.lifecycle.SavedStateHandle
+import kotlin.jvm.Throws
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 internal object UNINITIALIZED_VALUE
 
+/**
+ * Implement the property access delegation for a [SavedStateHandle]. The given [key] is used to
+ * access the [savedStateHandle]. If the [key] is not present into the [savedStateHandle] the
+ * [_initializer] is called in order to generate a default value to be returned.
+ *
+ * @param savedStateHandle reference to the [SavedStateHandle] object
+ * @param key used to access the [SavedStateHandle]
+ * @param initializer provides a default value when the [SavedStateHandle] doesn't contain
+ * the given [key]
+ */
 internal class SavedStateHandleReadWriteProperty<T>(
     private val savedStateHandle: SavedStateHandle,
     private val key: String,
@@ -22,30 +33,59 @@ internal class SavedStateHandleReadWriteProperty<T>(
     }
 
     override fun getValue(thisRef: Any?, property: KProperty<*>): T {
-        val value: T? = savedStateHandle.get(key)
+        var value: Any? = savedStateHandle.get(key)
         if (value == null) {
+            // The given key is not present, the default value must be returned.
             if (defaultValue === UNINITIALIZED_VALUE) {
+                /*
+                * The default value is not initialized. First it is initialized
+                * using the initializer function and after the reference to the initializer function
+                * is cleared.
+                */
                 defaultValue = _initializer!!()
                 _initializer = null
             }
-            @Suppress("UNCHECKED_CAST")
-            return defaultValue as T
+            value = defaultValue
         }
-        return value
+        @Suppress("UNCHECKED_CAST")
+        return value as T
     }
 }
 
+/**
+ * Create a delegate property for the given key which is used
+ * to access the [SavedStateHandle].
+ *
+ * @param key used to get and set the value into the [SavedStateHandle]
+ */
 fun <T> SavedStateHandle.savedState(key: String): ReadWriteProperty<Any?, T?> {
     return SavedStateHandleReadWriteProperty(this, key) { null }
 }
 
-fun <T : Any> SavedStateHandle.savedState(
+/**
+ * Create a delegate property for the given key which is used
+ * to access the [SavedStateHandle]. If the [SavedStateHandle] doesn't contain the specified key
+ * the [defaultValue] is returned in place of null.
+ *
+ * @param key used to get and set the value into the [SavedStateHandle]
+ * @param defaultValue returned when the [SavedStateHandle] doesn't contain the [key]
+ */
+fun <T : Any> SavedStateHandle.savedStateNotNull(
     key: String,
     defaultValue: T
 ): ReadWriteProperty<Any?, T> {
     return SavedStateHandleReadWriteProperty(this, key) { defaultValue }
 }
 
+/**
+ * Create a delegate property for the given key which is used
+ * to access the [SavedStateHandle]. If the [SavedStateHandle] doesn't contain the given [key],
+ * an [IllegalStateException] is thrown.
+ *
+ * @param key used to get and set the value into the [SavedStateHandle]
+ * @throws IllegalStateException is the [SavedStateHandle] doesn't contain the [key]
+ */
+@Throws(IllegalStateException::class)
 fun <T : Any> SavedStateHandle.savedStateNotNull(key: String): ReadWriteProperty<Any?, T> {
     return SavedStateHandleReadWriteProperty(this, key) {
         throw IllegalStateException("SavedStateHandle doesn't contain the key $key")
