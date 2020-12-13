@@ -1,4 +1,4 @@
-@file:Suppress("unused", "MemberVisibilityCanBePrivate")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate", "SameParameterValue")
 
 package com.pierluigifimiano.viewmodelsavedstatektx
 
@@ -21,7 +21,8 @@ abstract class SavedStateViewModel(protected val savedStateHandle: SavedStateHan
      * @param key
      * @see SavedStateHandle.getLiveData
      */
-    protected fun <T> liveData(key: String): MutableLiveData<T> = savedStateHandle.getLiveData(key)
+    protected fun <T> getLiveData(key: String): MutableLiveData<T> =
+        savedStateHandle.getLiveData(key)
 
     /**
      * Wrapper function for the [SavedStateHandle.getLiveData] function.
@@ -30,7 +31,7 @@ abstract class SavedStateViewModel(protected val savedStateHandle: SavedStateHan
      * @param initialValue
      * @see SavedStateHandle.getLiveData
      */
-    protected fun <T> liveData(key: String, initialValue: T): MutableLiveData<T> =
+    protected fun <T> getLiveData(key: String, initialValue: T): MutableLiveData<T> =
         savedStateHandle.getLiveData(key, initialValue)
 
     /**
@@ -51,18 +52,8 @@ abstract class SavedStateViewModel(protected val savedStateHandle: SavedStateHan
      */
     protected fun <T : Any> savedStateNotNull(
         key: String,
-        defaultValue: T
-    ): ReadWriteProperty<Any?, T> =
-        savedStateHandle.savedStateNotNull(key, defaultValue)
-
-    /**
-     * Wrapper function for the [SavedStateHandle.savedStateNotNull] function.
-     *
-     * @see SavedStateHandle.savedStateNotNull
-     * @param key
-     */
-    protected fun <T : Any> savedStateNotNull(key: String): ReadWriteProperty<Any?, T> =
-        savedStateHandle.savedStateNotNull(key)
+        defaultValue: T? = null
+    ): ReadWriteProperty<Any?, T> = savedStateHandle.savedStateNotNull(key, defaultValue)
 
     /**
      * Wrapper function for the [SavedStateHandle.set] function.

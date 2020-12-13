@@ -9,7 +9,7 @@ const val FIRST_VALUE_KEY = "firstValue"
 
 class MainViewModel(savedStateHandle: SavedStateHandle) : SavedStateViewModel(savedStateHandle) {
 
-    private val _myValue: MutableLiveData<Int> = liveData("myValue")
+    private val _myValue: MutableLiveData<Int> = getLiveData("myValue")
     val myValue: LiveData<Int> = _myValue
 
     private var isFirstTime: Boolean by savedStateNotNull("isFirstTime", true)

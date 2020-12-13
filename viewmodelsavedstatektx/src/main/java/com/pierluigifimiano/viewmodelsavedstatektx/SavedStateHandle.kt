@@ -3,7 +3,6 @@
 package com.pierluigifimiano.viewmodelsavedstatektx
 
 import androidx.lifecycle.SavedStateHandle
-import kotlin.jvm.Throws
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -65,29 +64,20 @@ fun <T> SavedStateHandle.savedState(key: String): ReadWriteProperty<Any?, T?> {
 /**
  * Create a delegate property for the given key which is used
  * to access the [SavedStateHandle]. If the [SavedStateHandle] doesn't contain the specified key
- * the [defaultValue] is returned in place of null.
+ * the [defaultValue] is returned if it is not null else an [IllegalStateException] is thrown.
  *
  * @param key used to get and set the value into the [SavedStateHandle]
- * @param defaultValue returned when the [SavedStateHandle] doesn't contain the [key]
- */
-fun <T : Any> SavedStateHandle.savedStateNotNull(
-    key: String,
-    defaultValue: T
-): ReadWriteProperty<Any?, T> {
-    return SavedStateHandleReadWriteProperty(this, key) { defaultValue }
-}
-
-/**
- * Create a delegate property for the given key which is used
- * to access the [SavedStateHandle]. If the [SavedStateHandle] doesn't contain the given [key],
- * an [IllegalStateException] is thrown.
- *
- * @param key used to get and set the value into the [SavedStateHandle]
+ * @param defaultValue if not null, is returned when the [SavedStateHandle]
+ * doesn't contain the [key]
  * @throws IllegalStateException is the [SavedStateHandle] doesn't contain the [key]
+ * and [defaultValue] is null
  */
 @Throws(IllegalStateException::class)
-fun <T : Any> SavedStateHandle.savedStateNotNull(key: String): ReadWriteProperty<Any?, T> {
+fun <T : Any> SavedStateHandle.savedStateNotNull(
+    key: String,
+    defaultValue: T? = null
+): ReadWriteProperty<Any?, T> {
     return SavedStateHandleReadWriteProperty(this, key) {
-        throw IllegalStateException("SavedStateHandle doesn't contain the key $key")
+        defaultValue ?: throw IllegalStateException("SavedStateHandle doesn't contain the key $key")
     }
 }
