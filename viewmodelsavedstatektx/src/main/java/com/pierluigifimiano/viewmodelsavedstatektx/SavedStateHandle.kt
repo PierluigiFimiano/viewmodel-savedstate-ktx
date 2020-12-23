@@ -5,7 +5,7 @@ import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 private abstract class SavedStateHandleProperty<T : Any?>(
-    protected val savedStateHandle: SavedStateHandle,
+    @JvmField protected val savedStateHandle: SavedStateHandle,
     private val key: String?
 ) : ReadWriteProperty<Any?, T> {
 
@@ -54,17 +54,16 @@ fun <T : Any> SavedStateHandle.requireProperty(
     defaultValue: T? = null
 ): ReadWriteProperty<Any?, T> = object : SavedStateHandleProperty<T>(this, key) {
     override fun getValue(thisRef: Any?, property: KProperty<*>): T {
-        var value: T? = savedStateHandle.get(getKey(property))
-        if (value == null) {
-            // The given key is not present, the default value should be returned.
-            if (defaultValue == null) {
-                // The default value was not specified, an exception is thrown.
-                throw IllegalStateException(
-                    "SavedStateHandle doesn't contain the key ${getKey(property)}"
-                )
-            }
-            value = defaultValue
-        }
-        return value
+        return savedStateHandle.get<T>(getKey(property))
+        // The given key is not present, the default value should be returned.
+            ?: defaultValue
+            // The default value was not specified, an exception is thrown.
+            ?: throw IllegalStateException(
+                "SavedStateHandle doesn't contain the key ${
+                    getKey(
+                        property
+                    )
+                }"
+            )
     }
 }
